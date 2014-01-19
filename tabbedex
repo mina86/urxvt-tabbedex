@@ -245,7 +245,7 @@ sub refresh {
    my $len = $ofs;
    my @ends;
    for my $tab (@{ $self->{tabs} }) {
-      my $name = substr($tab->{name} ? $tab->{name} : $idx, -$max_len);
+      my $name = substr($tab->{name} ? $tab->{name} : $idx + 1, -$max_len);
       ++$idx;
       $len += length($name) + 3;        # '| ' and ' '
       if ($tab == $self->{cur}) {
@@ -267,7 +267,7 @@ sub refresh {
 
    for (; $idx < @{ $self->{tabs} }; ++$idx) {
       my $tab = $self->{tabs}[$idx];
-      my $name = substr($tab->{name} ? $tab->{name} : $idx, -$max_len);
+      my $name = substr($tab->{name} ? $tab->{name} : $idx + 1, -$max_len);
       my $act = $self->tab_activity_mark($tab, $now);
       my $txt = sprintf "%s%s%s", $act, $name, matching_activity_mark $act;
       my $len = length $txt;
@@ -514,6 +514,18 @@ sub register_keysyms {
         $tab->parse_keysym('Shift-Up', 'perl:tabbedex:rename_tab');
         $tab->parse_keysym('Control-Left', 'perl:tabbedex:move_tab_left');
         $tab->parse_keysym('Control-Right', 'perl:tabbedex:move_tab_right');
+        $tab->parse_keysym('Meta-F1', 'perl:tabbedex:goto_tab_1');
+        $tab->parse_keysym('Meta-F2', 'perl:tabbedex:goto_tab_2');
+        $tab->parse_keysym('Meta-F3', 'perl:tabbedex:goto_tab_3');
+        $tab->parse_keysym('Meta-F4', 'perl:tabbedex:goto_tab_4');
+        $tab->parse_keysym('Meta-F5', 'perl:tabbedex:goto_tab_5');
+        $tab->parse_keysym('Meta-F6', 'perl:tabbedex:goto_tab_6');
+        $tab->parse_keysym('Meta-F7', 'perl:tabbedex:goto_tab_7');
+        $tab->parse_keysym('Meta-F8', 'perl:tabbedex:goto_tab_8');
+        $tab->parse_keysym('Meta-F9', 'perl:tabbedex:goto_tab_9');
+        $tab->parse_keysym('Meta-F10', 'perl:tabbedex:goto_tab_10');
+        $tab->parse_keysym('Meta-F11', 'perl:tabbedex:goto_tab_11');
+        $tab->parse_keysym('Meta-F12', 'perl:tabbedex:goto_tab_12');
     }
 }
 
@@ -726,6 +738,9 @@ sub tab_user_command {
   elsif ($cmd eq 'tabbedex:move_tab_right') {
     $self->move_tab($tab, 1);
   }
+  elsif ($cmd =~ /^tabbedex:goto_tab_(\d+)$/) {
+    $self->change_to_tab($tab, $1 - 1);
+  }
   elsif ($cmd eq 'tabbedex:rename_tab') {
     $self->rename_tab($tab);
   }
@@ -750,6 +765,16 @@ sub change_tab {
         ++$idx while $self->{tabs}[$idx] != $tab;
         $idx += $direction;
         $self->make_current ($self->{tabs}[$idx % @{ $self->{tabs}}]);
+    }
+
+    ();
+}
+
+sub change_to_tab {
+    my ($self, $tab, $idx) = @_;
+
+    if (!$self->{is_inputting_name} && @{ $self->{tabs} } > 1 && $idx >= 0 && $idx < @{ $self->{tabs} }) {
+        $self->make_current ($self->{tabs}[$idx]);
     }
 
     ();
