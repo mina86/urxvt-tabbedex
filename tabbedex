@@ -342,10 +342,39 @@ sub new_tab {
 
    push @urxvt::TERM_EXT, urxvt::ext::tabbedex::tab::;
 
+
+   my @args;
+   if (!@{ $self->{tabs} })
+   {
+      # Start the first tab as it is
+      @args = @{ $self->{argv} };
+   } else {
+      # Get the working directory of the current tab and prepend a -cd to the command line
+      my $term = $self->{cur}{term};
+      my @str = $term->XGetWindowProperty($term->parent, $self->{tab_title});
+      if (@str && $str[2]) {
+         my $str = decode("utf8", $str[2]);
+         if ($str =~ /: (.+)$/)
+         {
+            use Cwd 'abs_path';
+            use File::Path::Expand;
+            push @args, "-cd";
+            push @args, abs_path(expand_filename($1));
+         }
+      }
+
+      # For the other tabs, remove the -e part if it exists
+      for my $arg (@{ $self->{argv} })
+      {
+         last if $arg == '-e';
+         push @args, $arg;
+      }
+   }
+
    my $term = new urxvt::term
       $self->env, $urxvt::RXVTNAME,
       -embed => $self->parent,
-      @{ $self->{argv} };
+      @args;
 }
 
 
