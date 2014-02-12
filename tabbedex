@@ -200,6 +200,17 @@ sub tab_activity_mark ($$;$) {
    '*';
 }
 
+sub tab_is_root {
+   my ($self, $tab) = @_;
+   if (exists $self->{hl_root_mode} && $self->{hl_root_mode}) {
+      my $net_wm_name = $tab->{term}->XGetWindowProperty(
+         $tab->{term}->parent, $self->{atoms}{_NET_WM_NAME}
+      );
+      return $net_wm_name =~ /^root@/;
+   }
+   return 0;
+}
+
 {
 
 my %matching_activity_marks = (
@@ -274,9 +285,9 @@ sub refresh {
 
       substr $text, $ofs, $len + 1, "$txt|";
 
-      my $color = $self->{rs_tab}[
+      my $color = !$self->tab_is_root($tab) ? $self->{rs_tab}[
          2 * $self->tab_bell_active($tab, $now) + ($tab == $self->{cur})
-      ];
+      ] : ($tab != $self->{cur} ? $self->{rs_root} : $self->{rs_root_cur});
       if (defined $color) {
          @$rend[$ofs .. $ofs + $len - 1] = ($color) x $len;
       }
@@ -552,6 +563,8 @@ sub on_init {
       $self->rs_color ('bell', 0, 3),     # bell ringing
       $self->rs_color ('bell-tab', 5, 4)  # active, bell ringing
    ];
+   $self->{rs_root} = $self->rs_color ('root', 0, 1);
+   $self->{rs_root_cur} = $self->rs_color ('root-tab', 7, 1);
 
    my $timeouts = $self->rs_text ("tabbar-timeouts");
    $timeouts = '16:.:8:::4:+' unless defined $timeouts;
@@ -574,6 +587,7 @@ sub on_init {
    $self->{autohide} = $self->rs_bool ('autohide', 'false');
    $self->{no_default_keys} = $self->rs_bool ('no-tabbedex-keys', 0);
    $self->{reopen_on_close} = $self->rs_bool ('reopen-on-close', 0);
+   $self->{hl_root_mode} = $self->rs_bool ('hl-root-mode', 1);
 
    $self->register_keysyms;
 
@@ -603,6 +617,10 @@ sub on_start {
 
    if ($self->{tab_title}) {
       $self->{tab_title} = $self->{term}->XInternAtom("_NET_WM_NAME", 1);
+   }
+
+   if ($self->{hl_root_mode}) {
+      $self->{atoms}{_NET_WM_NAME} = $self->{term}->XInternAtom("_NET_WM_NAME", 1);
    }
 
    $self->new_tab;
