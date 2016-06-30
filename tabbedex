@@ -181,6 +181,7 @@ sub tab_bell_active ($$$) {
         if ($tab == $self->{cur}) {
             return $now - $tab->{bell_rung} < $self->{bell_timeout};
         } else {
+            $self->{term}->set_urgency(1) if ($self->{tab_UrgentOnBell});
             return 1;
         }
     }
@@ -575,6 +576,7 @@ sub on_init {
    $self->{autohide} = $self->rs_bool ('autohide', 'false');
    $self->{no_default_keys} = $self->rs_bool ('no-tabbedex-keys', 0);
    $self->{reopen_on_close} = $self->rs_bool ('reopen-on-close', 0);
+   $self->{tab_UrgentOnBell} = $self->rs_bool ('tab-UrgentOnBell', 0);
 
    $self->register_keysyms;
 
