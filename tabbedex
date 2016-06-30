@@ -344,7 +344,9 @@ sub new_tab {
    push @urxvt::TERM_EXT, urxvt::ext::tabbedex::tab::;
 
    my $argv=$self->{argv};
-   $self->{argv}="" unless ($self->{new_tab_inherit_command});
+   if (!($self->{new_tab_inherit_command})) {
+       $self->{argv}="";
+   }
    my $term = new urxvt::term
       $self->env, $urxvt::RXVTNAME,
       -embed => $self->parent,
