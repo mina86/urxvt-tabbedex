@@ -343,10 +343,12 @@ sub new_tab {
 
    push @urxvt::TERM_EXT, urxvt::ext::tabbedex::tab::;
 
+   my $argv=$self->{argv};
+   $self->{argv}="" unless ($self->{new_tab_inherit_command});
    my $term = new urxvt::term
       $self->env, $urxvt::RXVTNAME,
       -embed => $self->parent,
-      @{ $self->{argv} };
+      @{ $argv };
 }
 
 
@@ -575,6 +577,7 @@ sub on_init {
    $self->{autohide} = $self->rs_bool ('autohide', 'false');
    $self->{no_default_keys} = $self->rs_bool ('no-tabbedex-keys', 0);
    $self->{reopen_on_close} = $self->rs_bool ('reopen-on-close', 0);
+   $self->{new_tab_inherit_command} = $self->rs_bool ('new-tab-inherit-command',1);
 
    $self->register_keysyms;
 
