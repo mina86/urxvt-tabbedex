@@ -343,14 +343,10 @@ sub new_tab {
 
    push @urxvt::TERM_EXT, urxvt::ext::tabbedex::tab::;
 
-   my $argv=$self->{argv};
-   if (!($self->{new_tab_inherit_command})) {
-       $self->{argv}=[];
-   }
    my $term = new urxvt::term
       $self->env, $urxvt::RXVTNAME,
       -embed => $self->parent,
-      @{ $argv };
+      @{ $self->{argv} };
 }
 
 
@@ -612,6 +608,9 @@ sub on_start {
    }
 
    $self->new_tab;
+   if (!($self->{new_tab_inherit_command})) {
+       $self->{argv}=[];
+   }
 
    if (defined $self->{timeouts}) {
       my $interval = ($self->{timeouts}[@{ $self->{timeouts} } - 1]->[0]);
