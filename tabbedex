@@ -345,7 +345,7 @@ sub new_tab {
 
    my $argv=$self->{argv};
    if (!($self->{new_tab_inherit_command})) {
-       $self->{argv}="";
+       $self->{argv}=[];
    }
    my $term = new urxvt::term
       $self->env, $urxvt::RXVTNAME,
