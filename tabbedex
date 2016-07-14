@@ -84,14 +84,24 @@
 ##   to other extension packages if the mouse was not over the urxvt
 ##   window.
 ##
-## Added by Thomas Jost:
+## Added by Thomas Jost <schnouki@schnouki.net>:
 ##
 ## * Add several user commands: tabbedex:rename_tab,
 ##   tabbedex:move_tab_(left|right).
-##   e.g. (see 9.) URxvt.keysym.C-S-Left: perl:tabbex:move_tab_left
+##   e.g. URxvt.keysym.C-S-Left: perl:tabbex:move_tab_left
 ##
 ## * Ability to disable the default keybindings using the
 ##   no-tabbedex-keys resource.
+##
+## * A new tab can be created with an escape sequence:
+##       printf "\033]777;tabbedex;new_tab\007"
+##   would create a new tab after the active one.
+##
+## * The active tab can be changed with an escape sequence:
+##       printf "\033]777;tabbedex;change_tab;1\007"
+##   would move to the next tab (+1), while
+##       printf "\033]777;tabbedex;change_tab;-2\007"
+##   would move to 2 tabs before the active one.
 ##
 ## Added by xanf (Illya Klymov):
 ##
@@ -132,10 +142,15 @@
 ##   [mina86@mina86.com: Added a fix to temporarily show the tab bar
 ##    if renaming a tab.]
 ##
-## * The name of the current tab can be changed with an escape sequence.
-##     For example, the shell command
-##         printf "\033]777;tabbedex;set_tab_name;work stuff\007"
-##     would change the name of the current tab to "work stuff".
+## * The name of any tab can be changed with an escape sequence. For
+##   example, the shell command
+##       printf "\033]777;tabbedex;set_tab_name;work stuff\007"
+##   would change the name of the current tab to "work stuff", and
+##       printf "\033]777;tabbedex;rename_tab;-1;server logs\007"
+##   would change the name of the previous tab to "server logs".
+##   rename_tab can also be invoked with an empty (or zero) index to
+##   change the name of the current tab:
+##       printf "\033]777;tabbedex;rename_tab;;work stuff\007"
 ##
 ## * Previously, if you had a lot of tabs and/or tabs with long names,
 ##   the current tab might not show up in the tab bar (if its position
@@ -860,20 +875,56 @@ sub rename_tab {
 }
 
 
-# printf "\033]777;tabbedx;set_tab_name;new name\007"
+# printf "\033]777;tabbedex;new_tab\007"
+# printf "\033]777;tabbedex;change_tab;1\007"
+# printf "\033]777;tabbedex;rename_tab;;new name\007"
+# printf "\033]777;tabbedex;rename_tab;1;new name\007"
 sub tab_osc_seq_perl {
     my ($self, $tab, $osc) = @_;
 
-    if ($osc =~ /^tabbedx;set_tab_name;(.*)$/) {
-        if ($self->{is_inputting_name}) {
-            $tab->{old_name} = $1;
+    if ($osc !~ /^tabbedex;(.*)$/) {
+       return 1;
+    }
+
+    my ($cmd, @args) = split /;/, $1;
+    if ($cmd eq 'set_tab_name') {
+       if ($self->{is_inputting_name}) {
+            $tab->{old_name} = $args[0];
         } else {
-            $tab->{name} = $1;
+            $tab->{name} = $args[0];
         }
         $self->update_autohide (1);
         $self->refresh;
         1;
     }
+    elsif ($cmd eq 'rename_tab') {
+        my $rtab = $tab;
+        if ($args[0] ne '') {
+            my $idx = 0;
+            ++$idx while $self->{tabs}[$idx] != $tab;
+            $idx += $args[0];
+            $rtab = $self->{tabs}[$idx % @{ $self->{tabs}}];
+        }
+        if ($self->{is_inputting_name}) {
+            $rtab->{old_name} = $args[1];
+        } else {
+            $rtab->{name} = $args[1];
+        }
+        $self->update_autohide (1);
+        $self->refresh;
+        1;
+    }
+    elsif ($cmd eq 'new_tab') {
+        if (!$self->{is_inputting_name}) {
+            $self->new_tab;
+        }
+        1;
+    }
+    elsif ($cmd eq 'change_tab') {
+        $self->change_tab($tab, $args[0]);
+        1;
+    }
+
 }
 
 
