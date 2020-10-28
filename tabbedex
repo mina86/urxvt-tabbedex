@@ -267,6 +267,24 @@ As a deprecated feature, if a single character is given and it's (, [, { or <,
 matching closing brace will be used for right activity mark.  This is feature
 will be removed in the future.
 
+=item B<ignore-active-bot-lines>: I<string>
+
+If you wish to ignore activity coming from the bottom of an inactive tab, you
+can set the number of lines to ignore using this resource:
+
+    URxvt.tabbedex.ignore-active-bot-lines:   1
+
+This might be useful if the inactive tab is running L<screen(1)> and has a
+status line which includes a clock, which would cause the timeout strings to
+show up on the inactive tab title after a minute or less.
+
+If set to L<1>, the botton-most line on the screen will be ignored, and the
+timeout strings will only appear on an inactive tab for changes to other
+lines.  You can set this to the number rows of at the bottom of your terminal that
+you wish to ignore.
+
+If unspecified, the default setting for this resource is L<0>.
+
 =item B<tabbed.tabbedex-rs-prefix>: I<string>
 
 A B<deprecated> alternative resource name prefix.  It's always specified with
@@ -1066,6 +1084,7 @@ sub init {
    $root->{register_keysyms} = !$rs->bool('no-tabbedex-keys', 0);
    $root->{reopen_on_close}  = $rs->bool('reopen-on-close', 0);
    $root->{tab_arguments}    = $rs->text('tab-arguments', '');
+   $root->{ignore_active_bot_lines} = $rs->text('ignore-active-bot-lines', 0);
 
    # TODO: Remove the warning in late 2020.
    if (defined $rs->text('new-tab-command')) {
@@ -1228,6 +1247,23 @@ sub tab_add_lines {
 	();
 }
 
+sub tab_line_update {
+    my ($root, $tab, $row) = @_;
+    # Only allow activity in rows above the ignored ones:
+    if ( $row < ( $tab->nrow - $root->{ignore_active_bot_lines} ) ) {
+        if ($tab != $root->{cur}) {
+            my $now = urxvt::NOW;
+            my @pre = $root->tab_activity_marks($tab, $now);
+            $tab->{last_activity} = $now;
+            my @post = $root->tab_activity_marks($tab, $now);
+            if ($pre[0] ne $post[0] || $pre[1] ne $post[1]) {
+                $root->refresh($now);
+            }
+        }
+    }
+    ();
+}
+
 
 sub tab_action {
 	my ($root, $tab, $cmd) = @_;
@@ -1310,8 +1346,14 @@ use POSIX qw/tcgetpgrp/;
 
 
 sub enable_hooks {
-	for my $hook (qw(start destroy property_notify add_lines
-	                 bell osc_seq_perl)) {
+    my @hook_list;
+    if ( $_[0]{root}->{ignore_active_bot_lines} > 0 ) {
+        @hook_list = qw(start destroy property_notify line_update bell osc_seq_perl);
+    }
+    else {
+        @hook_list = qw(start destroy property_notify add_lines bell osc_seq_perl);
+    }
+	for my $hook (@hook_list) {
 		my $name = "urxvt::ext::tabbedex::root::tab_$hook";
 		$_[0]->enable($hook => sub {
 			unshift @_, $_[0]{root};
