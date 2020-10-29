@@ -275,15 +275,17 @@ can set the number of lines to ignore using this resource:
     URxvt.tabbedex.ignore-active-bot-lines:   1
 
 This might be useful if the inactive tab is running L<screen(1)> and has a
-status line which includes a clock, which would cause the timeout strings to
+status line that includes a clock, which would cause the activity marks to
 show up on the inactive tab title after a minute or less.
 
 If set to L<1>, the botton-most line on the screen will be ignored, and the
-timeout strings will only appear on an inactive tab for changes to other
-lines.  You can set this to the number rows of at the bottom of your terminal that
+activity marks will only appear on an inactive tab for changes to other
+lines.  You can set this to the number rows at the bottom of your terminal that
 you wish to ignore.
 
-If unspecified, the default setting for this resource is L<0>.
+If unspecified, the default setting for this resource is L<0>, which elicits
+the normally expected behavior of displaying activity marks on the title of
+an inactive tab for changes anywhere on that tab.
 
 =item B<tabbed.tabbedex-rs-prefix>: I<string>
 
