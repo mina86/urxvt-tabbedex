@@ -267,7 +267,7 @@ As a deprecated feature, if a single character is given and it's (, [, { or <,
 matching closing brace will be used for right activity mark.  This is feature
 will be removed in the future.
 
-=item B<ignore-active-bot-lines>: I<string>
+=item B<ignore-active-bot-lines>: I<number>
 
 If you wish to ignore activity coming from the bottom of an inactive tab, you
 can set the number of lines to ignore using this resource:
@@ -280,8 +280,8 @@ show up on the inactive tab title after a minute or less.
 
 If set to L<1>, the botton-most line on the screen will be ignored, and the
 activity marks will only appear on an inactive tab for changes to other
-lines.  You can set this to the number rows at the bottom of your terminal that
-you wish to ignore.
+lines.  You can set this to the number of rows at the bottom of your terminal
+that you wish to ignore.
 
 If unspecified, the default setting for this resource is L<0>, which elicits
 the normally expected behavior of displaying activity marks on the title of
@@ -1086,7 +1086,7 @@ sub init {
    $root->{register_keysyms} = !$rs->bool('no-tabbedex-keys', 0);
    $root->{reopen_on_close}  = $rs->bool('reopen-on-close', 0);
    $root->{tab_arguments}    = $rs->text('tab-arguments', '');
-   $root->{ignore_active_bot_lines} = $rs->text('ignore-active-bot-lines', 0);
+   $root->{ignore_active_bot_lines} = $rs->text('ignore-active-bot-lines', 0) + 0;
 
    # TODO: Remove the warning in late 2020.
    if (defined $rs->text('new-tab-command')) {
