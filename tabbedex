@@ -1087,6 +1087,7 @@ sub init {
    $root->{reopen_on_close}  = $rs->bool('reopen-on-close', 0);
    $root->{tab_arguments}    = $rs->text('tab-arguments', '');
    $root->{ignore_active_bot_lines} = $rs->text('ignore-active-bot-lines', 0) + 0;
+   $root->{ignore_lines_tab_name_pattern} = $rs->text('ignore-lines-tab-name-pattern', '.*');
 
    # TODO: Remove the warning in late 2020.
    if (defined $rs->text('new-tab-command')) {
@@ -1251,9 +1252,13 @@ sub tab_add_lines {
 
 sub tab_line_update {
     my ($root, $tab, $row) = @_;
-    # Only allow activity in rows above the ignored ones:
-    if ( $row < ( $tab->nrow - $root->{ignore_active_bot_lines} ) ) {
-        if ($tab != $root->{cur}) {
+    # Only allow activity in rows above the ignored ones,
+    # for tabs whose names match the specified pattern:
+    if ($tab != $root->{cur}) {
+        my $regex = $root->{ignore_lines_tab_name_pattern};
+        if ( ( $tab->{name} =~ m/$regex/ &&
+               $row < ( $tab->nrow - $root->{ignore_active_bot_lines} ) ) ||
+             ( $tab->{name} !~ m/$regex/ ) ) {
             my $now = urxvt::NOW;
             my @pre = $root->tab_activity_marks($tab, $now);
             $tab->{last_activity} = $now;
