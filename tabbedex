@@ -287,6 +287,25 @@ If unspecified, the default setting for this resource is L<0>, which elicits
 the normally expected behavior of displaying activity marks on the title of
 an inactive tab for changes anywhere on that tab.
 
+Note that this setting applies to ALL inactive tabs. If you would like to
+apply it only to specific tabs, see the L<ignore-lines-tab-name-pattern>
+resource.
+
+=item B<ignore-lines-tab-name-pattern>: I<string>
+
+Specify a pattern (regular expression) that tab names need to match in order for the
+I<ignore-active-bot-lines> resource to apply to them.  The default value is:
+
+    URxvt.tabbedex.ignore-lines-tab-name-pattern:    .*
+
+Which matches ALL tab names, but if you set it something else, like for
+example:
+
+    URxvt.tabbedex.ignore-lines-tab-name-pattern:    ^_
+
+Then only tabs whose names begin with an underscore will have some of their
+active lines ignored by the I<ignore-active-bot-lines> resource.
+
 =item B<tabbed.tabbedex-rs-prefix>: I<string>
 
 A B<deprecated> alternative resource name prefix.  It's always specified with
