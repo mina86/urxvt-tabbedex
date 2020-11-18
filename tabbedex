@@ -1001,6 +1001,11 @@ _on key_release => sub {
 
 sub key_event {
 	my ($root, $type, $event) = @_;
+
+	# Do nothing if a dead key is being pressed and the mouse cursor
+	# is outside the active urxvt window:
+	return if $type eq 'key_press' && $event->{state}==0 && $event->{keycode}==0 && $event->{time}==0;
+
 	my $tab = $root->{cur};
 	$tab->$type($event->{state}, $event->{keycode}, $event->{time});
 
