@@ -283,6 +283,10 @@ the <tabbedex-rs-prefix> resource should be set to percent sign as in:
 
     URxvt.tabbed.tabbedex-rs-prefix: %
 
+=item B<wrap>: I<boolean>
+
+If set, next_tab/prev_tab will wrap around (default). If set to no, next_tab command will stop at the last tab and prev_tab command will stop at the first one.
+
 =back
 
 Extension's behaviour is also influenced by some of URxvt's configuration
@@ -1127,6 +1131,7 @@ sub init {
    $root->{bell_timeout}     = $rs->text('bell-timeout', 1) + 0;
    $root->{new_button}       = $rs->bool('new-button', 0);
    $root->{tab_title}        = $rs->bool('title', 1);
+   $root->{wrap}        = $rs->bool('wrap', 1);
    $root->{autohide}         = $rs->bool('autohide', 1);
    $root->{register_keysyms} = !$rs->bool('no-tabbedex-keys', 0);
    $root->{reopen_on_close}  = $rs->bool('reopen-on-close', 0);
@@ -1303,9 +1308,15 @@ sub tab_action {
 			$root->new_tab($tab, $2, $index);
 		}
 	} elsif ($cmd eq 'next_tab') {
-		$root->make_current(($tab->index + 1) % @{ $root->{tabs} });
+		if ($tab->index + 1  < @{ $root->{tabs} }) {
+			$root->make_current($tab->index + 1);
+		} elsif ($root->{wrap}) {
+			$root->make_current(0);
+		}
 	} elsif ($cmd eq 'prev_tab') {
-		$root->make_current($tab->index - 1);
+		if ($tab->index > 0 or $root->{wrap}) {
+			$root->make_current($tab->index - 1);
+		}
 	} elsif ($cmd eq 'move_tab_left') {
 		$root->move_tab($tab, -1);
 	} elsif ($cmd eq 'move_tab_right') {
