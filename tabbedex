@@ -891,6 +891,7 @@ sub configure {
    my ($root) = @_;
 
    my $tab = $root->{cur};
+   my $padding = 2 * $tab->int_bwidth;
 
    # this is an extremely dirty way to force a configurenotify, but who cares
    $tab->XMoveResizeWindow (
@@ -920,7 +921,7 @@ sub copy_properties {
                                                                $atom);
 
       # fix up size hints
-      if ($atom == $wm_normal_hints && $root->{tabheight}) {
+      if ($atom == $wm_normal_hints) {
          # typedef struct {
          #         long flags;                  /* 0 */
          #         int x, y;                    /* 1, 2 */ /* Obsolete */
@@ -939,6 +940,7 @@ sub copy_properties {
          # (Don’t ask me how this works with long and int types.  Somehow it
          # does – mina86).
          my (@hints) = unpack "l!*", $items;
+         $hints[$_] += 2 * $tab->int_bwidth for (3, 5, 15);
          $hints[$_] += $root->{tabheight} for (4, 6, 16);
          $items = pack "l!*", @hints;
       }
@@ -1134,6 +1136,7 @@ sub parse_timeouts {
 sub init {
    my ($root) = @_;
 
+   $root->{padding} = 2 * $root->int_bwidth;
    $root->{resource} = [map $root->resource ("+$_"),
                             0 .. urxvt::NUM_RESOURCES - 1];
 
