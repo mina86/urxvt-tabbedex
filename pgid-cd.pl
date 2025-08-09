@@ -60,7 +60,7 @@ directory from existing tab.
 
 =head1 SEE ALSO
 
-L<urxvt-tabbed(1)> and L<tabbedex-command-runner(1)>
+L<tabbedex(1)> and L<tabbedex-command-runner(1)>
 
 =cut
 

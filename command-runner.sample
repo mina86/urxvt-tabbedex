@@ -61,7 +61,7 @@ urxvt-tabbedex, the resource should be:
 
 =head1 SEE ALSO
 
-L<urxvt-tabbed(1)> and L<tabbedex-pgid-cd(1)>
+L<tabbedex(1)> and L<tabbedex-pgid-cd(1)>
 
 =cut
 
