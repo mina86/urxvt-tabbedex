@@ -1,7 +1,8 @@
 #! perl
 # TabbedEx plugin for rxvt-unicode; based on original tabbed plugin.
 # https://github.com/mina86/urxvt-tabbedex
-# Copyright 2006-2020 tabbed and tabbedex authors
+# Copyright 2006-2022 tabbed and tabbedex authors
+# Copyright 2013-2026 Michał Nazarewicz <mina86@mina86.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,12 +24,12 @@ tabbedex - tabbed interface to urxvt; extended
 =head1 DESCRIPTION
 
 This extension implements a tabbed terminal.  Once rxvt-unicode starts, slave
-terminals can be started in their own tabs and switched between.  At each point
-only one terminal is visible.  rxvt-unicode exits once all tabs are closed.
+terminals can be launched in their own tabs and navigated among.  At each point
+only one tab is visible.  rxvt-unicode exits once all tabs are closed.
 
-Once at least two tabs are created a tab bar is displayed at the top of the
-window which lists all the slave terminals.  Clicking on a number/name of a tab
-on that bar switches to it.
+When two or more tabs are open, a tab bar appears at the top of the window which
+lists all the tabs with their numbers/names.  Clicking on tab's number/name
+switches to it.
 
 tabbedex is an extended version of the tabbed plugin distributed with urxvt.
 
@@ -52,7 +53,7 @@ wraps around once at the first or last tab.
 
 Switches to the first through twelfth tab.
 
-=item B<Control-Left> and B<Control-right>
+=item B<Control-Left> and B<Control-Right>
 
 Move current tab to the left or right.  Wraps around on the first and last
 position.
@@ -61,7 +62,7 @@ position.
 
 Allows current tab to be renamed.  Tab bar is shown if it was hidden, current
 tab's name (if any) is cleared and cursor is displayed in its place.  Typing
-text renames the tab, backspace or Ctrl+H delete the last character, Escape or
+text renames the tab, backspace or Ctrl+H deletes the last character, Escape or
 Ctrl+C aborts the rename operation and Enter accepts the new name.
 
 =back
@@ -84,8 +85,8 @@ Tabbedex recognises the following resources:
 =item B<autohide>: I<boolean>
 
 If set (the default), the tab bar will be hidden unless there are at least two
-tabs open.  This is irrespective of whether C<NEW> button or tab's title is
-displayed.
+tabs open.  This is irrespective of whether the C<NEW> button (see below) or
+the tab's title is displayed.
 
 =item B<new-button>: I<boolean>
 
@@ -114,7 +115,7 @@ a background tab on which bell has rung, 4) the current tab if bell has rung and
 
 Colours can be specified as: I<-2> meaning default foreground, I<-1> meaning
 default background, an integer between B<0> and B<255> specifying index in
-terminal' colour palette or any other string which X11 recognises as a colour
+terminal's colour palette or any other string which X11 recognises as a colour
 (e.g. B<#1155CC>).
 
 Furthermore, the B<-fg> resource can be prefixed by combination of B<bold>,
@@ -133,22 +134,21 @@ The default values for the settings are as follows:
 
 =item B<bell-timeout>: I<number>
 
-Time in seconds, one second by default, a bell is said to be ringing on current
-tab for after it was rung.  Setting this to zero essentially disables the
-B<bell-tab-(fg|bg)> styling of tabs.
+Duration in seconds a bell is said to be ringing on the current tab after it was
+rung.  Setting this to zero disables the B<bell-tab-(fg|bg)> styling of tabs.
+The default value is one second.
 
 =item B<tab-arguments>: I<string>
 
-Arguments passed when starting a slave tabs.  If not specified, I<-e B<command>>
-switch used when starting urxvt command is used (if any).  If specified, the
-value is first expanded (see below), then split into words using shell quoting
-rules and those are passed as arguments to slave terminals when they are
-started.
+Arguments passed when starting a tab.  If not specified, I<-e B<command>> switch
+used when starting urxvt command is used (if any).  If specified, the value is
+first expanded (see below), then split into words using shell quoting rules and
+those are passed as arguments to slave terminals when they are started.
 
 This resource can be used to pass any arguments however doing so may have
 unintended consequences.  Options such as I<-bw> or I<-geometry> are especially
 problematic but others may cause issues as well.  Because of this, only I<-e
-B>command arguments>> is officially supported.
+B>command arguments>> option is supported.
 
 The value is expanded by replacing two-character sequences starting with
 a percent sign as follows:
@@ -171,8 +171,9 @@ starting urxvt will be completely ignored.
 =item I<%E>
 
 Similar to I<%e> but I<-e> is not included in the expansion and if I<%e> would
-expand to an empty string I<%E> expands to value of SHELL environment variable
-or I</bin/sh> if that's empty.  This means that I<%E> is always a valid command.
+expand to an empty string I<%E> expands to the value of the SHELL environment
+variable or I</bin/sh> if that's empty.  This means that I<%E> is always a valid
+command.
 
 For example, here's how the sequence can be used to set TABBEDEX_NUM environment
 variables when running a command:
@@ -193,7 +194,9 @@ terminal in the current tab (as in, not the new tab being created but the tab
 where the new tab request originated from) or -1 if this piece of information
 could not be determined.
 
-This can be used to guess the current working directory of current tab.
+This can be used to guess the current working directory of current tab.  This
+feature is implemented in B<pgid-cd.pl> script distributed with this extension.
+See its documentation for example usage.
 
 =item I<%~>
 
@@ -252,7 +255,7 @@ around its number (or name if it has one) on the tab bar.  By default Unicode
 characters are used to display a block which grows with time the longer it was
 since last time there was any activity in the tab.
 
-This resource allows for this to be customised.  It's format is
+This resource allows for this to be customised.  Its format is
 
     ( <timeout> ":" <char> <char>? ":" )* <timeout> ":" <char> <char>? ":"
 
@@ -299,8 +302,8 @@ B<URxvt.keysym>.I<keysym> resource.  For example:
 
 makes I<Ctrl+T> create a new tab and I<Ctrl+Tab> and I<Ctrl+Shift+Tab> switch
 between existing tabs.  Using the name of the extension as the prefix of the
-keysym binding is preferred but when running an ancient urxvt (i.e. anything
-prior to 9.21) an alternative B<perl:tabbedex> must be used instead.
+keysym binding is preferred but when running an urxvt version older than 9.21 an
+alternative B<perl:tabbedex> must be used instead.
 
 Supported actions are:
 
@@ -415,7 +418,9 @@ L<tabbedex-pgid-cd(1)>
 
 =head1 COPYRIGHT
 
-Copyright 2006-2020 tabbed and tabbedex authors
+Copyright 2006-2022 tabbed and tabbedex authors
+
+Copyright 2013-2026 Michal Nazarewicz <mina86@mina86.com>
 
 This program is free software: you can redistribute it and/or modify it under
 the terms of the GNU General Public License as published by the Free Software
@@ -442,7 +447,7 @@ use Scalar::Util;
 use Text::ParseWords;
 
 
-# An initialisation hook which is called in root/master and slave tabs.  It’s
+# An initialisation hook which is called in root/master and slave tabs.  Its
 # purpose is to determine which one the object is and call that type’s
 # initialisation code.
 #
@@ -454,7 +459,7 @@ use Text::ParseWords;
 # that) and actions weren’t dispatched correctly.
 #
 # Now, no matter if it’s root or not, from urxvt’s point of view it’s all
-# ‘tebbedex’ plugin.
+# ‘tabbedex’ plugin.
 sub on_init {
 	my ($self) = @_;
 
