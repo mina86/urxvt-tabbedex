@@ -714,7 +714,7 @@ sub _tabbar_layout {
 	($new_button, $first_idx, $last_idx, \@names)
 }
 
-sub min {
+sub positive_min {
 	@_ = grep { defined && $_ > 0 } @_;
 	my $best = shift;
 	for my $n (@_) {
@@ -765,7 +765,8 @@ sub refresh {
 		if ($tab->is_being_renamed) {
 			$bar->put_cursor(-2);
 		}
-		$min_delay = min $min_delay, $delay, $tab->{bell_ends} - $now;
+		$min_delay = positive_min
+			$min_delay, $delay, $tab->{bell_ends} - $now;
 	}
 
 	if ($last_idx < $#$names) {
