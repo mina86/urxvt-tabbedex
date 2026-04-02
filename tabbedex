@@ -1110,7 +1110,11 @@ sub init {
    # Save internal border width for later in `start` when we calculate desired
    # window size.  For the root window we don’t want the internal border so
    # we’re setting the resource to zero.
-   $root->{original_int_bwidth} = $root->int_bwidth;;
+   #
+   # This used to call $root->int_bwidth to get the internal border width,
+   # however it looks like at this point the value of that is 2, (which is the
+   # default INTERNALBORDERWIDTH).  So instead, read the int_bwidth resource.
+   $root->{original_int_bwidth} = $root->resource ('int_bwidth') // 0;
    $root->resource (int_bwidth => 0);
 
    # Don’t start a terminal in the root window.
