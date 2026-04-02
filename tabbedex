@@ -1445,8 +1445,8 @@ use POSIX qw/tcgetpgrp/;
 	} qw(start destroy property_notify line_update bell osc_seq_perl);
 
 	sub enable_hooks {
-		my ($root) = @_;
-		$root->enable(%hooks);
+		my ($tab) = @_;
+		$tab->enable(%hooks);
 	}
 
 	sub enable_activity_hook {
