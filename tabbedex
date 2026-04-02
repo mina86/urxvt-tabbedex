@@ -1107,15 +1107,15 @@ sub init {
    $root->{resource} = [map $root->resource ("+$_"),
                             0 .. urxvt::NUM_RESOURCES - 1];
 
-   $root->{hpadding} = $root->{vpadding} = 2 * $root->int_bwidth;
+   # Save internal border width for later in `start` when we calculate desired
+   # window size.  For the root window we don’t want the internal border so
+   # we’re setting the resource to zero.
+   $root->{original_int_bwidth} = $root->int_bwidth;;
    $root->resource (int_bwidth => 0);
+
+   # Don’t start a terminal in the root window.
    $root->resource (pty_fd => -1);
 
-   if (defined(my $key = $urxvt::OPTION{scrollBar})) {
-      if ($root->{option}{$key} = $root->option($key, 0)) {
-         $root->{hpadding} += $root->get_scrollbar_thickness;
-      }
-   }
    # Disable ‘intensityStyles’ so that bold, blink etc. specified in tabbar
    # styles don’t affect the colours.
    if (defined(my $key = $urxvt::OPTION{intensityStyles})) {
@@ -1205,11 +1205,16 @@ _on start => sub {
    # may have those options enabled which makes means that they end up with less
    # usable space than user requested. To account for that, enlarge the root to
    # make space for the border and scroll bar.
-   my $hpadding = delete $root->{hpadding};
-   my $vpadding = delete $root->{vpadding};
-   if ($hpadding || $vpadding || $root->{tabheight}) {
-      my $w = $root->width + $hpadding;
-      my $h = $root->height + $vpadding + $root->{tabheight};
+   my $padding = 2 * delete $root->{original_int_bwidth};
+   my $scroll_width = 0;
+   if (defined(my $key = $urxvt::OPTION{scrollBar})) {
+     if ($root->{option}{$key} = $root->option($key, 0)) {
+       $scroll_width = $root->get_scrollbar_thickness;
+     }
+   }
+   if ($padding || $scroll_width || $root->{tabheight}) {
+      my $w = $root->width + $padding + $scroll_width;
+      my $h = $root->height + $padding + $root->{tabheight};
       $root->XMoveResizeWindow($root->parent, 0, 0, $w, $h);
    }
 
