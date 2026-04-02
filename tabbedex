@@ -1469,9 +1469,39 @@ use POSIX qw/tcgetpgrp/;
 }
 
 sub init {
-	$_[0]{bell_ends} = 0;
-}
+	my ($tab) = @_;
+	$tab->{bell_ends} = 0;
 
+	# There’s a bug when internal border is non-zero.  The urxvt window is
+	# resized when the first tab is created and as a result of the resize,
+	# the terminal gets higher which moves the cursor position down from the
+	# top of the terminal (i.e. the new rows are added above the current
+	# cursor position).  This is a normal behaviour, except in this one case
+	# we don’t want it to happen.
+	#
+	# To avoid this, we set the cursor position to (0, 0).  To avoid the
+	# cursor position moving after the terminal is initialised already, we
+	# do this at most once and never after some text has already been
+	# written to the terminal.  Finally, this is only relevant when internal
+	# border width is non-zero so none of this happens if it’s zero.
+	#
+	# Honestly, this is a hack, but it does seem to work.
+	if ($tab->int_bwidth) {
+		$tab->enable(reset => sub {
+			my ($tab) = @_;
+			my ($row, $col) = $tab->screen_cur;
+			if ($row ne 0 && $col eq 0) {
+				$tab->screen_cur(0, 0);
+				$tab->disable('add_lines', 'reset');
+			}
+		});
+		$tab->enable(add_lines => sub {
+			my ($tab) = @_;
+			$tab->disable('add_lines', 'reset');
+			0;
+		});
+	}
+}
 
 sub index {
 	my ($tab) = @_;
