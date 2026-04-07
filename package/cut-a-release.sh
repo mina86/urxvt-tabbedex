@@ -81,7 +81,10 @@ echo "$version" >$tmp/$pkg/.version
 
 mkdir -- "$tmp/$pkg/release-notes"
 for tag in $(git tag | grep -o '^v[1-9][0-9]\.[0-9][0-9].*'); do
-	git cat-file tag $tag | sed '1,/^$/d' >$tmp/$pkg/release-notes/$tag.txt
+	git cat-file tag $tag | sed '
+		1,/^$/d
+		/-----BEGIN PGP SIGNATURE-----/,/-----END PGP SIGNATURE-----/d
+	' >$tmp/$pkg/release-notes/$tag.txt
 done
 
 cd -- "$tmp"
