@@ -77,6 +77,14 @@ if find "$tmp/$pkg/experimental" -maxdepth 0 -empty | grep -q .; then
 	rmdir -- "$tmp/$pkg/experimental"
 fi
 
+(
+	echo Original urxvt tabbed extension authors.
+	git log --format='%an <%ae>' |sort |uniq -c |sort -rn |sed 's/^ *[0-9]\+ //'
+	echo 'Alexey Semenko <asemenko@gmail.com>'
+	echo 'jpkotta'
+	echo 'xanf (Illya Klymov)'
+) >"$tmp/$pkg/AUTHORS"
+
 echo "$version" >$tmp/$pkg/.version
 
 mkdir -- "$tmp/$pkg/release-notes"
