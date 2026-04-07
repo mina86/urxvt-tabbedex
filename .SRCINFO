@@ -5,11 +5,12 @@ pkgbase = urxvt-tabbedex
 	url = https://github.com/mina86/urxvt-tabbedex
 	install = urxvt-tabbedex.install
 	arch = any
-	license = GPL
+	license = GPL-3.0-or-later
+	makedepends = perl
 	depends = rxvt-unicode
 	source = https://github.com/mina86/urxvt-tabbedex/releases/download/v26.15/urxvt-tabbedex-26.15.tar.bz2
 	source = urxvt-tabbedex.install
 	sha256sums = a8377fb12f73b7c9e235d28a222a210c92e5cefb53366ffcde7e9f10daec29c0
-	sha256sums = cfa2c90fe409e85d55fb18841b2c0d321856e0f1cd0c1881a8d1ee19f9553835
+	sha256sums = 7f723f5e3509e96fab53f1653b647947ee0350dc92127c9c3e7c2579dbcd4658
 
 pkgname = urxvt-tabbedex
