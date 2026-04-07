@@ -1,5 +1,5 @@
 pkgname=urxvt-tabbedex
-pkgver=22.32
+pkgver=26.15
 pkgrel=1
 
 pkgdesc="Tabbed plugin for rxvt-unicode with many enhancements "
@@ -7,13 +7,13 @@ url='https://github.com/mina86/urxvt-tabbedex'
 arch=("any")
 license=("GPL")
 depends=('rxvt-unicode')
-install=urxvt-tabbedex.install 
+install=urxvt-tabbedex.install
 # https://github.com/mina86/$pkgname/archive/v$pkgver.tar.gz
 source=(https://github.com/mina86/$pkgname/releases/download/v$pkgver/$pkgname-$pkgver.tar.bz2
         urxvt-tabbedex.install)
 
-md5sums=('5eb46faeed39fb906b37838b1dc47125'
-         '6ea57fa7db9cc912b3759f1ef8c064b0')
+sha256sums=('a8377fb12f73b7c9e235d28a222a210c92e5cefb53366ffcde7e9f10daec29c0'
+            'cfa2c90fe409e85d55fb18841b2c0d321856e0f1cd0c1881a8d1ee19f9553835')
 
 package() {
 	cd $srcdir/$pkgname-$pkgver
