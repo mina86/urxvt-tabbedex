@@ -1117,6 +1117,15 @@ sub init {
    $root->{original_int_bwidth} = $root->resource ('int_bwidth') // 0;
    $root->resource (int_bwidth => 0);
 
+   # Disable scroll bar in the outer terminal window while also calculating the
+   # width of the scroll bar shown in the tab bars.
+   $root->{scroll_width} = 0;
+   if (defined(my $key = $urxvt::OPTION{scrollBar})) {
+     if ($root->{option}{$key} = $root->option($key, 0)) {
+       $root->{scroll_width} = $root->get_scrollbar_thickness;
+     }
+   }
+
    # Don’t start a terminal in the root window.
    $root->resource (pty_fd => -1);
 
@@ -1210,12 +1219,7 @@ _on start => sub {
    # usable space than user requested. To account for that, enlarge the root to
    # make space for the border and scroll bar.
    my $padding = 2 * delete $root->{original_int_bwidth};
-   my $scroll_width = 0;
-   if (defined(my $key = $urxvt::OPTION{scrollBar})) {
-     if ($root->{option}{$key} = $root->option($key, 0)) {
-       $scroll_width = $root->get_scrollbar_thickness;
-     }
-   }
+   my $scroll_width = delete $root->{scroll_width};
    if ($padding || $scroll_width || $root->{tabheight}) {
       my $w = $root->width + $padding + $scroll_width;
       my $h = $root->height + $padding + $root->{tabheight};
