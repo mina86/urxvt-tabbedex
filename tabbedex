@@ -1,6 +1,6 @@
 #! perl
 # TabbedEx plugin for rxvt-unicode; based on original tabbed plugin.
-# https://github.com/mina86/urxvt-tabbedex
+# https://codeberg.org/mina86/urxvt-tabbedex
 # Copyright 2006-2022 tabbed and tabbedex authors
 # Copyright 2013-2026 Michał Nazarewicz <mina86@mina86.com>
 #
@@ -416,6 +416,23 @@ Note that if text wraps multiple lines, only the topmost row counts as changed.
 L<urxvt(1)>, L<urxvt-tabbed(1)>, L<tabbedex-command-runner(1)> and
 L<tabbedex-pgid-cd(1)>
 
+=head1 BUG REPORTS
+
+File bug reports:
+
+=over
+
+=item
+at L<https://codeberg.org/mina86/urxvt-tabbedex/issues>,
+
+=item
+at L<https://github.com/mina86/urxvt-tabbedex/issues> or
+
+=item
+over email to L<mina86@mina86.com>.
+
+=back
+
 =head1 COPYRIGHT
 
 Copyright 2006-2022 tabbed and tabbedex authors
@@ -438,8 +455,7 @@ this program.  If not, see <http://www.gnu.org/licenses/>.
 
 tabbedex has been created (as a fork of L<urxvt-tabbed(1)>) and is maintained by
 Michal Nazarewicz.  For list of authors see B<AUTHORS> file distributed with the
-extension.  Send bug reports and comments to mina86@mina86.com or file them at
-L<https://github.com/mina86/urxvt-tabbedex>.
+extension.
 
 =cut
 
