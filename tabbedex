@@ -1627,14 +1627,6 @@ package urxvt::ext::tabbedex::rs_reader;
 
 sub new {
 	my ($class, $root) = @_;
-	# TODO: Stop printing this warning in late 2023 or early 2024.
-	my $prefix = $root->x_resource('tabbed.tabbedex-rs-prefix') // '%';
-	my $extname = $root->{_name};
-	if ($prefix ne '%' && $prefix ne $extname) {
-		$root->warn("‘tabbed.tabbedex-rs-prefix’ resource is no " .
-		            "longer respected; use ‘$extname’ as prefix for " .
-		            "tabbedex resources");
-	}
 	bless \$root, $class
 }
 
