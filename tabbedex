@@ -800,6 +800,17 @@ sub refresh {
 
 	$bar->apply;
 	$root->want_refresh;
+	# want_refresh only flags the redraw; when refresh() runs from a tab's
+	# hook (property_notify, line_update, bell…) urxvt calls refresh_check
+	# on the tab, not on root, so the tab bar would stay stale until root
+	# receives an event of its own (e.g. a key press).  Schedule root's
+	# redraw explicitly.  refresh_check is available since rxvt-unicode 9.22.
+	eval {
+		$root->refresh_check;
+	};
+	if ($@ && $@ !~ /refresh_check/) {
+		warn "$@";
+	}
 	if (defined $min_delay) {
 		$root->{timer}->start($now + $min_delay);
 	}
@@ -1324,12 +1335,18 @@ sub tab_destroy {
 
 
 sub tab_property_notify {
-   my ($root, $tab, $event) = @_;
+	my ($root, $tab, $event) = @_;
 
-   $root->copy_properties
-      if $event->{window} == $tab->parent;
+	if ($tab == $root->{cur} && $event->{window} == $tab->parent) {
+		$root->copy_properties;
+		# Redraw the tab bar so the window title shown there follows
+		# changes made by the application (e.g. via OSC 0/2).
+		if ($root->{tab_title} && $event->{atom} == $root->{tab_title}) {
+			$root->refresh;
+		}
+	}
 
-   ();
+	();
 }
 
 
