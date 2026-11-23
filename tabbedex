@@ -496,19 +496,18 @@ sub on_init {
 	bless $self, "urxvt::ext::tabbedex::$type";
 
 	# And continue initialisation.
-	my $supports_action = enable_action_hooks($self, !defined $root);
 	$self->enable_hooks;
 	$self->init;
 	if ($root->{register_keysyms}) {
-		register_keysyms($self, $supports_action);
+		register_keysyms($self);
 	}
 
 	()
 }
 
 sub register_keysyms {
-	my ($self, $supports_action) = @_;
-	my $prefix = ($supports_action && $self->{_name}) || 'perl:tabbedex';
+	my ($self) = @_;
+	my $prefix = $self->{_name};
 	$self->parse_keysym('Shift-Left', $prefix . ':prev_tab');
 	$self->parse_keysym('Shift-Right', $prefix . ':next_tab');
 	$self->parse_keysym('Shift-Down', $prefix . ':new_tab');
@@ -519,40 +518,6 @@ sub register_keysyms {
 		$self->parse_keysym('Meta-F' . $num,
 				    $prefix . ':goto_tab_' . $num);
 	}
-}
-
-# Install handlers for ‘action’ and ‘user_command’ hooks.  This subroutine means
-# that root and tab packages should not touch those hooks themselves.  This is
-# here mostly because ancient urxvt errors out when trying to define ‘action’
-# hook.  As I didn’t want to duplicate handling of that, I moved it here where
-# both packages are handled.  And since ‘user_command’ is closely related, why
-# not handle it here as well?  A µoptimisation is that whatever way an action
-# reaches the plugin, there’s just one hop till ‘tab_action’ is called.
-sub enable_action_hooks {
-	my ($self, $isroot) = @_;
-	$self->enable(user_command => $isroot ? sub {
-		if ($_[1] =~ s/^tabbedex://) {
-			splice @_, 1, 0, $_[0]{cur};
-			goto \&urxvt::ext::tabbedex::root::tab_action;
-		}
-	} : sub {
-		if ($_[1] =~ s/^tabbedex://) {
-			unshift @_, $_[0]{root};
-			goto \&urxvt::ext::tabbedex::root::tab_action;
-		}
-	});
-	# Guard against ancient urxvts which do not support ‘action’ hook.  We
-	# probably shouldn’t bother, but oh well…
-	eval {
-		$self->enable(action => $isroot ? sub {
-			splice @_, 1, 0, $_[0]{cur};
-			goto \&urxvt::ext::tabbedex::root::tab_action;
-		} : sub {
-			unshift @_, $_[0]{root};
-			goto \&urxvt::ext::tabbedex::root::tab_action;
-		});
-		1
-	} // 0
 }
 
 
@@ -1053,18 +1018,7 @@ sub key_event {
 
 	my $tab = $root->{cur};
 	$tab->$type($event->{state}, $event->{keycode}, $event->{time});
-
-	# refresh_check is available since rxvt-unicode 9.22.  For some reason
-	# $tab->can('refresh_check') doesn’t work which is why eval block is
-	# used to silence warnings.
-	eval {
-		$tab->refresh_check;
-	};
-	if ($@ && $@ !~ /refresh_check/) {
-		# If there was a warning unrelated to refresh_check propagate
-		# it.  Otherwise ignore.
-		warn "$@";
-	}
+	$tab->refresh_check;
 	1;
 }
 
@@ -1379,6 +1333,24 @@ sub tab_line_update {
 }
 
 
+_on user_command => sub {
+	if ($_[1] =~ s/^tabbedex://) {
+		splice @_, 1, 0, $_[0]{cur};
+		goto \&urxvt::ext::tabbedex::root::tab_action;
+	}
+};
+
+sub tab_user_command {
+	if ($_[2] =~ s/^tabbedex://) {
+		goto \&urxvt::ext::tabbedex::root::tab_action;
+	}
+}
+
+_on action => sub {
+	splice @_, 1, 0, $_[0]{cur};
+	goto \&urxvt::ext::tabbedex::root::tab_action;
+};
+
 sub tab_action {
 	my ($root, $tab, $cmd) = @_;
 	if ($cmd =~ /^new_tab(?:_(before|after)_this)?(?::(.*))?$/) {
@@ -1471,7 +1443,8 @@ use POSIX qw/tcgetpgrp/;
 			unshift @_, $_[0]{root};
 			goto &$name;
 		}
-	} qw(start destroy property_notify line_update bell osc_seq_perl);
+	} qw(start destroy property_notify line_update bell osc_seq_perl
+	     action user_command);
 
 	sub enable_hooks {
 		my ($tab) = @_;
